@@ -16,45 +16,25 @@ export default function DashboardPage() {
   const [title, setTitle] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
-  const [error, setError] = useState("");
 
-  // 🔐 Auth Guard
   const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("token")
-      : null;
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
-    if (!token) {
-      router.replace("/login");
-    }
+    if (!token) router.replace("/login");
   }, [router, token]);
 
   const fetchTasks = async () => {
-    if (!token) return;
-
     let url = "http://localhost:4000/tasks?";
     if (search) url += `search=${search}&`;
     if (status !== "all") url += `status=${status}&`;
 
-    try {
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Failed to load tasks");
-        return;
-      }
-
-      setTasks(data);
-    } catch {
-      setError("Server error");
-    }
+    const data = await res.json();
+    setTasks(data);
   };
 
   useEffect(() => {
@@ -62,7 +42,7 @@ export default function DashboardPage() {
   }, [search, status]);
 
   const addTask = async () => {
-    if (!title.trim() || !token) return;
+    if (!title.trim()) return;
 
     await fetch("http://localhost:4000/tasks", {
       method: "POST",
@@ -78,25 +58,17 @@ export default function DashboardPage() {
   };
 
   const toggleTask = async (id: number) => {
-    if (!token) return;
-
     await fetch(`http://localhost:4000/tasks/${id}/toggle`, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     });
     fetchTasks();
   };
 
   const deleteTask = async (id: number) => {
-    if (!token) return;
-
     await fetch(`http://localhost:4000/tasks/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     });
     fetchTasks();
   };
@@ -107,34 +79,44 @@ export default function DashboardPage() {
   };
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Dashboard</h1>
+    <div className="min-h-screen p-6 max-w-3xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">My Tasks</h1>
+        <button
+          onClick={logout}
+          className="text-red-500 hover:underline"
+        >
+          Logout
+        </button>
+      </div>
 
-      <button onClick={logout}>Logout</button>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {/* ADD TASK */}
-      <div>
+      {/* Add Task */}
+      <div className="flex gap-2 mb-4">
         <input
-          placeholder="New task title"
+          className="flex-1 border rounded-lg px-4 py-2"
+          placeholder="New task..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <button onClick={addTask}>Add Task</button>
+        <button
+          onClick={addTask}
+          className="bg-blue-600 text-white px-4 rounded-lg"
+        >
+          Add
+        </button>
       </div>
 
-      <hr />
-
-      {/* SEARCH + FILTER */}
-      <div>
+      {/* Search & Filter */}
+      <div className="flex gap-2 mb-6">
         <input
-          placeholder="Search task..."
+          className="flex-1 border rounded-lg px-4 py-2"
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
         <select
+          className="border rounded-lg px-3 py-2"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
@@ -144,25 +126,34 @@ export default function DashboardPage() {
         </select>
       </div>
 
-      <hr />
-
-      {/* TASK LIST */}
-      <ul>
+      {/* Task List */}
+      <ul className="space-y-3">
         {tasks.map((task) => (
-          <li key={task.id}>
+          <li
+            key={task.id}
+            className="bg-white p-4 rounded-lg shadow flex justify-between items-center"
+          >
             <span
-              style={{
-                textDecoration: task.completed ? "line-through" : "none"
-              }}
+              className={task.completed ? "line-through text-gray-400" : ""}
             >
               {task.title}
             </span>
 
-            <button onClick={() => toggleTask(task.id)}>
-              {task.completed ? "Undo" : "Done"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => toggleTask(task.id)}
+                className="text-sm text-blue-600"
+              >
+                {task.completed ? "Undo" : "Done"}
+              </button>
 
-            <button onClick={() => deleteTask(task.id)}>Delete</button>
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="text-sm text-red-600"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
