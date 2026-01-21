@@ -11,6 +11,8 @@ type Task = {
 export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState("");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
   const [error, setError] = useState("");
 
   const token =
@@ -24,8 +26,12 @@ export default function DashboardPage() {
       return;
     }
 
+    let url = "http://localhost:4000/tasks?";
+    if (search) url += `search=${search}&`;
+    if (status !== "all") url += `status=${status}&`;
+
     try {
-      const res = await fetch("http://localhost:4000/tasks", {
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -46,31 +52,22 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [search, status]);
 
   const addTask = async () => {
     if (!title.trim()) return;
 
-    try {
-      const res = await fetch("http://localhost:4000/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ title })
-      });
+    await fetch("http://localhost:4000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ title })
+    });
 
-      if (!res.ok) {
-        setError("Failed to add task");
-        return;
-      }
-
-      setTitle("");
-      fetchTasks();
-    } catch {
-      setError("Server error");
-    }
+    setTitle("");
+    fetchTasks();
   };
 
   const toggleTask = async (id: number) => {
@@ -80,7 +77,6 @@ export default function DashboardPage() {
         Authorization: `Bearer ${token}`
       }
     });
-
     fetchTasks();
   };
 
@@ -91,7 +87,6 @@ export default function DashboardPage() {
         Authorization: `Bearer ${token}`
       }
     });
-
     fetchTasks();
   };
 
@@ -109,6 +104,26 @@ export default function DashboardPage() {
           onChange={(e) => setTitle(e.target.value)}
         />
         <button onClick={addTask}>Add Task</button>
+      </div>
+
+      <hr />
+
+      {/* SEARCH + FILTER */}
+      <div>
+        <input
+          placeholder="Search task..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="all">All</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+        </select>
       </div>
 
       <hr />

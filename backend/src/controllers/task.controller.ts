@@ -40,7 +40,7 @@ export const getTasks = async (req: Request, res: Response) => {
   if (search) {
     where.title = {
       contains: search,
-      mode: "insensitive"
+      
     };
   }
 
