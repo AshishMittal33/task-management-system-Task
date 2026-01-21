@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+ 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +38,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // save token
-      localStorage.setItem("token", data.token);
-
-      console.log("REGISTER SUCCESS, TOKEN:", data.token);
+      
+      router.push("/login");
     } catch (err) {
       setError("Server error");
     }

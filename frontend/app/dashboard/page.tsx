@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Task = {
   id: number;
@@ -9,22 +10,28 @@ type Task = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [error, setError] = useState("");
 
+  // 🔐 Auth Guard
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("token")
       : null;
 
-  const fetchTasks = async () => {
+  useEffect(() => {
     if (!token) {
-      setError("Not logged in");
-      return;
+      router.replace("/login");
     }
+  }, [router, token]);
+
+  const fetchTasks = async () => {
+    if (!token) return;
 
     let url = "http://localhost:4000/tasks?";
     if (search) url += `search=${search}&`;
@@ -55,7 +62,7 @@ export default function DashboardPage() {
   }, [search, status]);
 
   const addTask = async () => {
-    if (!title.trim()) return;
+    if (!title.trim() || !token) return;
 
     await fetch("http://localhost:4000/tasks", {
       method: "POST",
@@ -71,6 +78,8 @@ export default function DashboardPage() {
   };
 
   const toggleTask = async (id: number) => {
+    if (!token) return;
+
     await fetch(`http://localhost:4000/tasks/${id}/toggle`, {
       method: "PATCH",
       headers: {
@@ -81,6 +90,8 @@ export default function DashboardPage() {
   };
 
   const deleteTask = async (id: number) => {
+    if (!token) return;
+
     await fetch(`http://localhost:4000/tasks/${id}`, {
       method: "DELETE",
       headers: {
@@ -90,9 +101,16 @@ export default function DashboardPage() {
     fetchTasks();
   };
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    router.replace("/login");
+  };
+
   return (
     <div style={{ padding: 40 }}>
       <h1>Dashboard</h1>
+
+      <button onClick={logout}>Logout</button>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
