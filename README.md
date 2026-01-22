@@ -8,6 +8,7 @@ This project was built as a **software engineering assessment** and runs fully o
 ---
 ## Demo
 
+https://youtu.be/GQj3nNPJRH8
 
 ---
 
