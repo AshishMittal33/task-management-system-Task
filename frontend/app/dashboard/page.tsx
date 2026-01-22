@@ -24,18 +24,32 @@ export default function DashboardPage() {
     if (!token) router.replace("/login");
   }, [router, token]);
 
-  const fetchTasks = async () => {
-    let url = "http://localhost:4000/tasks?";
-    if (search) url += `search=${search}&`;
-    if (status !== "all") url += `status=${status}&`;
+ const fetchTasks = async () => {
+  if (!token) return;
 
+  let url = "http://localhost:4000/tasks?";
+  if (search) url += `search=${search}&`;
+  if (status !== "all") url += `status=${status}&`;
+
+  try {
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     const data = await res.json();
+
+    // 🔐 IMPORTANT FIX
+    if (!Array.isArray(data)) {
+      setTasks([]);
+      return;
+    }
+
     setTasks(data);
-  };
+  } catch (err) {
+    setTasks([]);
+  }
+};
+
 
   useEffect(() => {
     fetchTasks();
